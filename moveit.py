@@ -73,15 +73,16 @@ def report(bucket, timings, hotspots):
     _max = max(total for vbucket, total in timings)
     _min = min(total for vbucket, total in timings)
 
-    summary = '{}: {} movements, mean: {:.1f}s, max: {:.1f}s, min: {:.1f}s'
-    vb_summary = '{:>8}: {:.1f}s'
-    hotspot = '{}{} -> {}: {:.1f}%'
+    summary = '{{:>{}}}: {{}} movements, ' \
+        'mean: {{:.1f}}s, max: {{:.1f}}s, min: {{:.1f}}s'.format(len(bucket))
+    vb_summary = '{{:>{}}}: {{:.1f}}s'.format(len(bucket))
+    hotspot = '{}{{}} -> {{}}: {{:.1f}}%'.format(''.rjust(len(bucket) + 2))
 
     print(summary.format(bucket, len(timings), mean, _max, _min))
     for vbucket, total_time in timings:
         print(vb_summary.format(vbucket, total_time))
         for prev_event, event, delta in hotspots[vbucket]:
-            print(hotspot.format(''.rjust(10), prev_event, event, delta))
+            print(hotspot.format(prev_event, event, delta))
 
 
 def main():

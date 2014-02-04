@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='moveit',
-    version='0.2',
+    version='0.3',
     description='ns_server master events analyzer',
     author='Pavel Paulau',
     author_email='pavel.paulau@gmail.com',
