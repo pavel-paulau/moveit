@@ -1,9 +1,6 @@
+import argparse
 import json
-import sys
 from collections import defaultdict
-
-
-HOTSPOT_THRESHOLD = 10
 
 
 def read_data(fname):
@@ -39,20 +36,21 @@ def calc_total_time(events):
     if done and start:
         return done - start
 
-def find_hot_spots(events, total_time):
+
+def find_hot_spots(events, total_time, threshold):
     prev = prev_event = None
     for event, ts in events:
         if event == 'updateFastForwardMap':
             continue
         if prev:
             delta = 100 * (ts - prev) / total_time
-            if delta > HOTSPOT_THRESHOLD:
+            if delta > threshold:
                 yield (prev_event, event, delta)
         prev = ts
         prev_event = event
 
 
-def analyze_events(data):
+def analyze_events(data, threshold):
     for bucket, vbuckets in data.items():
         timings = []
         hotspots = defaultdict(list)
@@ -62,7 +60,7 @@ def analyze_events(data):
                 continue
             timings.append((vbucket, total_time))
 
-            for hotspot in find_hot_spots(events, total_time):
+            for hotspot in find_hot_spots(events, total_time, threshold):
                 hotspots[vbucket].append(hotspot)
         try:
             report(bucket, timings, hotspots)
@@ -87,10 +85,19 @@ def report(bucket, timings, hotspots):
 
 
 def main():
-    fname = sys.argv[1]
-    raw_data = read_data(fname=fname)
+    parser = argparse.ArgumentParser(prog='moveit')
+    parser.add_argument('-t', dest='threshold', type=float, default=0,
+                        help='hotspot threshold in %%')
+    parser.add_argument('filename', type=str,
+                        help='path to master events log')
+
+    args = parser.parse_args()
+    if not 0 <= args.threshold <= 100:
+        parser.error('threshold must be in 0 to 100 range')
+
+    raw_data = read_data(fname=args.filename)
     data = parse_events(data=raw_data)
-    analyze_events(data)
+    analyze_events(data, args.threshold)
 
 
 if __name__ == '__main__':

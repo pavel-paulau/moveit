@@ -12,14 +12,37 @@ Installation
 Usage
 -----
 
-    moveit master_events.log | head
-    bucket-1: 768 movements, mean: 194.0s, max: 478.5s, min: 6.3s
-          43: 242.9s
-              checkpointWaitingStarted -> checkpointWaitingEnded: 52.3%
-              checkpointWaitingStarted -> checkpointWaitingEnded: 46.3%
-          44: 234.0s
-              checkpointWaitingStarted -> checkpointWaitingEnded: 44.5%
-              checkpointWaitingStarted -> checkpointWaitingEnded: 54.0%
-          45: 147.8s
-              checkpointWaitingStarted -> checkpointWaitingEnded: 88.7%
-          46: 134.0s
+    $ moveit -h
+    usage: moveit [-h] [-t THRESHOLD] filename
+
+    positional arguments:
+      filename      path to master events log
+
+    optional arguments:
+      -h, --help    show this help message and exit
+      -t THRESHOLD  hotspot threshold in %
+
+Example
+-------
+
+    $ moveit master_events.log | head -n 20
+    bucket-1: 512 movements, mean: 358.4s, max: 1278.2s, min: 10.5s
+          86: 577.5s
+              vbucketMoveStart -> vbucketStateChange: 0.0%
+              vbucketStateChange -> vbucketStateChange: 0.0%
+              vbucketStateChange -> tapEstimate: 0.0%
+              tapEstimate -> tapEstimate: 0.0%
+              tapEstimate -> indexingInitiated: 0.0%
+              indexingInitiated -> backfillPhaseEnded: 0.3%
+              backfillPhaseEnded -> checkpointWaitingStarted: 0.0%
+              checkpointWaitingStarted -> checkpointWaitingEnded: 2.5%
+              checkpointWaitingEnded -> vbucketStateChange: 0.0%
+              vbucketStateChange -> checkpointWaitingStarted: 0.0%
+              checkpointWaitingStarted -> checkpointWaitingEnded: 4.1%
+              checkpointWaitingEnded -> waitIndexUpdatedStarted: 0.0%
+              waitIndexUpdatedStarted -> waitIndexUpdatedEnded: 92.8%
+              waitIndexUpdatedEnded -> vbucketStateChange: 0.1%
+              vbucketStateChange -> vbucketMoverTerminate: 0.0%
+              vbucketMoverTerminate -> vbucketStateChange: 0.1%
+              vbucketStateChange -> updateMap: 0.0%
+              updateMap -> vbucketMoveDone: 0.0%
