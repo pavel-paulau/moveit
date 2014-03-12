@@ -5,7 +5,7 @@ Prerequisites
 * pip
 
 Installation
--------------
+------------
 
     pip install moveit
 
