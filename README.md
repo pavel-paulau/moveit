@@ -22,8 +22,19 @@ Usage
       -h, --help    show this help message and exit
       -t THRESHOLD  hotspot threshold in %
 
+    $ flow -h
+    usage: flow [-h] filename
+
+    positional arguments:
+      filename    path to master events log
+
+    optional arguments:
+      -h, --help  show this help message and exit
+
 Example
 -------
+
+Master events profiler:
 
     $ moveit master_events.log | head -n 20
     bucket-1: 512 movements, mean: 358.4s, max: 1278.2s, min: 10.5s
@@ -46,3 +57,9 @@ Example
               vbucketMoverTerminate -> vbucketStateChange: 0.1%
               vbucketStateChange -> updateMap: 0.0%
               updateMap -> vbucketMoveDone: 0.0%
+
+Flow visualization:
+
+    $ flow master_events.log
+
+See `bucketname_master_events.log.svg` for output.

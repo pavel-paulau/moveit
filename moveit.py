@@ -90,8 +90,7 @@ def main():
     parser = argparse.ArgumentParser(prog='moveit')
     parser.add_argument('-t', dest='threshold', type=float, default=0,
                         help='hotspot threshold in %%')
-    parser.add_argument('filename', type=str,
-                        help='path to master events log')
+    parser.add_argument('filename', type=str, help='path to master events log')
 
     args = parser.parse_args()
     if not 0 <= args.threshold <= 100:
