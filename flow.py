@@ -48,10 +48,8 @@ class SvgPlotter(object):
         "#193D4F",
     )
 
-    STROKE_COLOR = '#FFFFFF'
-
-    MAX_WIDTH = 1300
-    MAX_HEIGHT = 640.0
+    MAX_W = 1300
+    MAX_H = 640.0
     Y_PADDING = 5
     X_PADDING = 50
 
@@ -61,7 +59,11 @@ class SvgPlotter(object):
     GRID_LENGTH = 100
 
     LEGEND_W = 180
-    LEGEND_H = 30
+    LEGEND_H = 20
+
+    NODE_LEGEND_H = 20
+    NODE_LEGEND_W = 140
+    NODE_LEGEND_PADDING = 5
 
     def __init__(self, bucket, fname):
         self.dwg = svgwrite.Drawing(filename='{}_{}.svg'.format(bucket, fname))
@@ -70,72 +72,90 @@ class SvgPlotter(object):
 
     def draw(self, movements, src_nodes, concurrency_per_dest,
              movements_per_dest, max_ts, min_ts):
-        span_height = self.MAX_HEIGHT / len(movements_per_dest)
+        scale = lambda ts: ts / (max_ts - min_ts) * self.MAX_W
 
-        scale = lambda ts: ts / (max_ts - min_ts) * self.MAX_WIDTH
+        num_large_spans = len(movements_per_dest)
+        num_small_spans = len(src_nodes) - num_large_spans
 
-        for idx, dest_node in enumerate(sorted(movements_per_dest)):
-            concurrency = concurrency_per_dest[dest_node]
-            mv_iter = cycle(range(concurrency))
-            bar_height = span_height / concurrency
+        large_span_height = \
+            (self.MAX_H - num_small_spans * self.NODE_LEGEND_H) / num_large_spans
+        span_offset = self.Y_PADDING
 
-            span_offset = span_height * idx + self.Y_PADDING
+        for idx, node in enumerate(sorted(src_nodes)):
+            if node in movements_per_dest:
+                span_height = large_span_height
+            else:
+                span_height = self.NODE_LEGEND_H
 
-            # Destination placeholder
-            rect = self.dwg.rect((self.DEST_PADDING / 2, span_offset),
-                                 (self.X_PADDING - self.DEST_PADDING, span_height),
-                                 rx=self.RECT_R, ry=self.RECT_R,
-                                 fill=self.PALETTE[src_nodes.index(dest_node)],
-                                 stroke='white')
-            self.dwg.add(rect)
+            if node in movements_per_dest:
+                concurrency = concurrency_per_dest[node]
+                mv_iter = cycle(range(concurrency))
+                bar_height = span_height / concurrency
 
-            # Separating line
-            line = self.dwg.line((self.X_PADDING, span_offset),
-                                 (self.MAX_WIDTH + self.X_PADDING, span_offset),
-                                 stroke='black',
-                                 stroke_dasharray='5,5',
-                                 shape_rendering='crispEdges')
-            self.dwg.add(line)
+                for vbucket, ((sts, src_node), (ets, _)) in movements[node].items():
+                    if src_node == node:
+                        continue
+                    bar_color = self.PALETTE[src_nodes.index(src_node)]
 
-            for vbucket, ((sts, src_node), (ets, _)) in movements[dest_node].items():
-                if src_node == dest_node:
-                    continue
-                bar_color = self.PALETTE[src_nodes.index(src_node)]
+                    # Coordinates and offset
+                    start = scale(sts - min_ts) + self.X_PADDING
+                    duration = scale(ets - sts)
+                    bar_offset = span_offset + next(mv_iter) * bar_height
 
-                # Coordinates and offset
-                start = scale(sts - min_ts) + self.X_PADDING
-                duration = scale(ets - sts)
-                bar_offset = span_offset + next(mv_iter) * bar_height
+                    # Movement bar
+                    rect = self.dwg.rect((start, bar_offset),
+                                         (duration, bar_height),
+                                         fill=bar_color,
+                                         stroke_width=1,
+                                         stroke='black',
+                                         shape_rendering='crispEdges')
+                    self.dwg.add(rect)
 
-                # Movement bar
-                rect = self.dwg.rect((start, bar_offset),
-                                     (duration, bar_height),
-                                     fill=bar_color,
-                                     stroke_width=1,
-                                     stroke='black',
-                                     shape_rendering='crispEdges')
-                self.dwg.add(rect)
+            node_color = self.PALETTE[src_nodes.index(node)]
+            self.draw_node_area(span_offset, span_height, node_color)
+            self.draw_node_legend(span_offset, span_height, node,
+                                  movements_per_dest[node])
 
-            # Node address and number of movements
-            rect = self.dwg.rect(
-                (50, span_offset + span_height - 20),
-                (140, 20),
-                fill='white', stroke='black', shape_rendering='crispEdges',
-            )
-            self.dwg.add(rect)
-
-            text = self.dwg.text(
-                text='{}: {}'.format(dest_node, movements_per_dest[dest_node]),
-                insert=[55, span_offset + span_height - 5],
-            )
-            self.dwg.add(text)
+            span_offset += span_height
 
         self.draw_legend(max_ts, min_ts)
         self.dwg.save()
 
-    def draw_legend(self, max_ts, min_ts):
+    def draw_node_area(self, offset, height, color):
+        """Destination placeholder and separating line"""
+        rect = self.dwg.rect((self.DEST_PADDING / 2, offset),
+                             (self.X_PADDING - self.DEST_PADDING, height),
+                             rx=self.RECT_R, ry=self.RECT_R,
+                             fill=color, stroke='white')
+        self.dwg.add(rect)
+
+        line = self.dwg.line((self.X_PADDING, offset),
+                             (self.MAX_W + self.X_PADDING, offset),
+                             stroke='black',
+                             stroke_dasharray='5,5',
+                             shape_rendering='crispEdges')
+        self.dwg.add(line)
+
+    def draw_node_legend(self, offset, height, node, num_movements):
+        # Node address and number of movements
         rect = self.dwg.rect(
-            (self.X_PADDING + self.MAX_WIDTH - self.LEGEND_W, self.Y_PADDING),
+            (self.X_PADDING, offset + height - self.NODE_LEGEND_H),
+            (self.NODE_LEGEND_W, self.NODE_LEGEND_H),
+            fill='white', stroke='black', shape_rendering='crispEdges',
+        )
+        self.dwg.add(rect)
+
+        text = self.dwg.text(
+            text='{}: {}'.format(node, num_movements),
+            insert=[self.X_PADDING + self.NODE_LEGEND_PADDING,
+                    offset + height - self.NODE_LEGEND_PADDING],
+        )
+        self.dwg.add(text)
+
+    def draw_legend(self, max_ts, min_ts):
+        """Top-right corner legend"""
+        rect = self.dwg.rect(
+            (self.X_PADDING + self.MAX_W - self.LEGEND_W, self.Y_PADDING),
             (self.LEGEND_W, self.LEGEND_H),
             fill='white', stroke='black', shape_rendering='crispEdges',
         )
@@ -144,29 +164,29 @@ class SvgPlotter(object):
         duration = round((max_ts - min_ts) / 60, 1)
         text = self.dwg.text(
             text='Total duration: {} min'.format(duration),
-            insert=[self.X_PADDING + self.MAX_WIDTH - self.LEGEND_W + 5,
-                    self.Y_PADDING + 20]
+            insert=[self.X_PADDING + self.MAX_W - self.LEGEND_W + 5,
+                    self.Y_PADDING + 15]
         )
         self.dwg.add(text)
 
     def draw_border(self):
         rect = self.dwg.rect((0, 0),
-                             (self.MAX_WIDTH + self.X_PADDING, self.MAX_HEIGHT + self.Y_PADDING),
+                             (self.MAX_W + self.X_PADDING, self.MAX_H + self.Y_PADDING),
                              fill='white',
                              stroke_width=0)
         self.dwg.add(rect)
 
         rect = self.dwg.rect((self.X_PADDING, self.Y_PADDING),
-                             (self.MAX_WIDTH, self.MAX_HEIGHT),
+                             (self.MAX_W, self.MAX_H),
                              fill='white',
                              stroke='black',
                              shape_rendering='crispEdges')
         self.dwg.add(rect)
 
     def draw_grid(self):
-        for g in range(self.X_PADDING, self.MAX_WIDTH, self.GRID_LENGTH):
+        for g in range(self.X_PADDING, self.MAX_W, self.GRID_LENGTH):
             line = self.dwg.line((g, self.Y_PADDING),
-                                 (g, self.MAX_HEIGHT + self.Y_PADDING),
+                                 (g, self.MAX_H + self.Y_PADDING),
                                  stroke='black',
                                  stroke_dasharray='5,5',
                                  shape_rendering='crispEdges')
