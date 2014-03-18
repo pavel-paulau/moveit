@@ -64,4 +64,4 @@ Flow visualization:
 
 See `bucketname_master_events.log.svg` for output.
 
-![](docs/flow25.png)
+![](docs/flow86.png)
