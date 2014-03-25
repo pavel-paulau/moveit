@@ -1,18 +1,17 @@
 from setuptools import setup
 setup(
     name='moveit',
-    version='0.6',
+    version='0.7.1',
     description='ns_server master events analyzer',
     author='Pavel Paulau',
     author_email='pavel.paulau@gmail.com',
-    py_modules=[
-        'flow',
+    packages=[
         'moveit',
     ],
     entry_points={
         'console_scripts': [
-            'flow = flow:main',
-            'moveit = moveit:main',
+            'flow = moveit.flow:main',
+            'moveit = moveit.moveit:main',
         ]
     },
     install_requires=[

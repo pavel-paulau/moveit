@@ -49,7 +49,7 @@ class SvgPlotter(object):
     )
 
     MAX_W = 1300
-    MAX_H = 640.0
+    MAX_H = 670.0
     Y_PADDING = 5
     X_PADDING = 50
 
