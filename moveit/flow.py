@@ -201,10 +201,17 @@ def parse_events(events):
     min_ts = float('inf')
     max_ts = 0
 
+    replica_swap = []
     for event in events:
         vbucket = event.get('vbucket')
+        if vbucket in replica_swap:
+            continue
         ts = event['ts']
         if event['type'] == 'vbucketMoveStart':
+            if sorted(event['chainBefore']) == sorted(event['chainAfter']):
+                replica_swap.append(vbucket)
+                continue
+
             min_ts = min(min_ts, ts)
             dest_node = event['chainAfter'][0].split(':')[0]
             src_node = event['chainBefore'][0].split(':')[0]
