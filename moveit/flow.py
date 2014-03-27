@@ -21,13 +21,13 @@ def estimate_concurrency(movements):
     for dest_node, vbuckets in movements.items():
         max_concurrency = 0
         for vbucket, ((start, src_node), (end, _)) in vbuckets.items():
-            concurrency = 0
-            for _vbucket, _src_node, _start, _end in timings[dest_node]:
-                if vbucket != _vbucket:
-                    if src_node == _src_node and src_node != dest_node:
+            if src_node != dest_node:
+                concurrency = 0
+                for _vbucket, _src_node, _start, _end in timings[dest_node]:
+                    if vbucket != _vbucket:
                         if _start < start < _end or _start < end < _end:
                             concurrency += 1
-            max_concurrency = max(max_concurrency, concurrency)
+                max_concurrency = max(max_concurrency, concurrency)
         concurrency_per_dest[dest_node] = max_concurrency
 
     return concurrency_per_dest, movements_per_dest
