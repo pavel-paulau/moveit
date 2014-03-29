@@ -193,6 +193,15 @@ class SvgPlotter(object):
             self.dwg.add(line)
 
 
+class IncompleteLog(Exception):
+
+    def __init__(self, vbucket):
+        self.vbucket = vbucket
+
+    def __str__(self):
+        return 'Miss some events in vbucket {}'.format(self.vbucket)
+
+
 def parse_events(events):
     movements = defaultdict(OrderedDict)
     vm_map = dict()
@@ -223,7 +232,10 @@ def parse_events(events):
 
         elif event['type'] == 'vbucketMoveDone':
             max_ts = max(max_ts, ts)
-            movements[vm_map[vbucket]][vbucket].append([ts, None])
+            try:
+                movements[vm_map[vbucket]][vbucket].append([ts, None])
+            except KeyError:
+                raise IncompleteLog(vbucket)
 
     src_nodes = sorted(src_nodes.union(movements.keys()))
     concurrency_per_dest, movements_per_dest = estimate_concurrency(movements)
@@ -240,7 +252,10 @@ def main():
     raw_data = read_data(args.filename)
     for bucket, events in raw_data.items():
         dwg = SvgPlotter(bucket, args.filename)
-        dwg.draw(*parse_events(events))
+        try:
+            dwg.draw(*parse_events(events))
+        except IncompleteLog:
+            continue
 
 
 if __name__ == '__main__':
