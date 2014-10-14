@@ -1,7 +1,16 @@
+moveit
+------
+
+[![PyPI](https://pypip.in/version/moveit/badge.svg)](https://pypi.python.org/pypi/moveit) [![PyPI](https://pypip.in/download/moveit/badge.svg)](https://pypi.python.org/pypi/moveit)
+[![Code Health](https://landscape.io/github/pavel-paulau/moveit/master/landscape.png)](https://landscape.io/github/pavel-paulau/moveit/master)
+
+A handy tool for [master events](https://github.com/couchbase/ns_server/blob/master/doc/master-events.txt) analysis.
+
+
 Prerequisites
 -------------
 
-* Python 2.7/3.3
+* Python 2.7/3.x
 * pip
 
 Installation
