@@ -32,7 +32,7 @@ def calc_total_time(events):
     for event, ts in events:
         if event == 'vbucketMoveDone':
             done = ts
-        elif event == 'vbucketMoveStart':
+        elif event == 'dcpAddStream' and start is None:
             start = ts
     if done and start:
         return done - start
@@ -41,7 +41,7 @@ def calc_total_time(events):
 def find_hot_spots(events, total_time, threshold):
     prev = prev_event = None
     for event, ts in events:
-        if event == 'updateFastForwardMap':
+        if event in ('updateFastForwardMap', 'vbucketStateChange'):
             continue
         if prev:
             delta = 100 * (ts - prev) / total_time
