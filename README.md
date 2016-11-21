@@ -3,6 +3,7 @@ moveit
 
 [![PyPI](https://img.shields.io/pypi/v/moveit.svg)](https://pypi.python.org/pypi/moveit)
 [![Code Health](https://landscape.io/github/pavel-paulau/moveit/master/landscape.png)](https://landscape.io/github/pavel-paulau/moveit/master)
+[![Codebeat](https://codebeat.co/badges/21dd031e-30b0-4205-b6e7-2ff11426b6a2)](https://codebeat.co/projects/github-com-pavel-paulau-moveit)
 
 A handy tool for [master events](https://github.com/couchbase/ns_server/blob/master/doc/master-events.txt) analysis.
 
